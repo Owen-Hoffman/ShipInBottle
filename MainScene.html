@@ -23,6 +23,8 @@
     <script src="https://preview.babylonjs.com/babylon.js"></script>
     <script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
     <script src="https://preview.babylonjs.com/materialsLibrary/babylonjs.materials.js"></script>
+    <script src="https://preview.babylonjs.com/earcut.min.js"></script>
+
 
     <script>
         var canvas = null;
@@ -50,57 +52,144 @@
             }
             function addBottle() {
                 var capsule = new BABYLON.MeshBuilder.CreateCapsule("capsule",
-                    { radius: 4, capSubdivisions: 12, subdivisions: 2, tessellation: 36, height: 18 });
+                    { radius: 8, capSubdivisions: 12, subdivisions: 2, tessellation: 36, height: 36 });
                 capsule.rotation.x += 1.56;
                 capsule.rotation.y += 1;
                 capsule.position.y += 2;
+                capsule.backFaceCulling = false;
 
-                const cylinder = BABYLON.MeshBuilder.CreateCylinder("cylinder", { height: 6, diameter: 2 });
-                cylinder.position.x -= 9.9;
+                const cylinder = BABYLON.MeshBuilder.CreateCylinder("cylinder", { height: 12, diameter: 4 });
+                cylinder.position.x -= 19.9;
                 cylinder.position.y += 2;
-                cylinder.position.z -= 6.5;
+                cylinder.position.z -= 13;
                 cylinder.rotation.x += 1.56;
                 cylinder.rotation.y += 1;
 
-                const cylinderTop = BABYLON.MeshBuilder.CreateTorus("cylinderTop", { diameter: 2.6, thickness:1, tessellation:34 });
-                cylinderTop.position.x -= 12.6;
+                const cylinderTop = BABYLON.MeshBuilder.CreateTorus("cylinderTop", { diameter: 5.2, thickness: 2, tessellation: 34 });
+                cylinderTop.position.x -= 25;
                 cylinderTop.position.y += 2;
-                cylinderTop.position.z -= 8.2;
+                cylinderTop.position.z -= 16.4;
                 cylinderTop.rotation.y += 1;
                 cylinderTop.rotation.x += 1.56;
 
                 capsule.visibility = 0.3;
                 cylinder.visibility = 0.3;
                 cylinderTop.visibility = 1;
+
             }
             function addWater() {
-                var groundMaterial = new BABYLON.StandardMaterial("groundMaterial", scene);
-                groundMaterial.diffuseTexture = new BABYLON.Texture("assets/ground.jpg", scene);
-                groundMaterial.diffuseTexture.uScale = groundMaterial.diffuseTexture.vScale = 4;
 
-                var ground = BABYLON.Mesh.CreateGround("ground", 5, 15, 0, scene, false);
-                ground.position.y = 0;
-                ground.rotation.y = 1;
-                ground.material = groundMaterial;
-
-
-                var waterMesh = BABYLON.Mesh.CreateGround("waterMesh", 5, 15, 0, scene, false);
-                waterMesh.rotation.y = 1;
-
+                //was water texture
                 var water = new BABYLON.WaterMaterial("water", scene);
                 water.bumpTexture = new BABYLON.Texture("assets/waterbump.png", scene);
 
-                water.windForce = -15;
-                water.waveHeight = 0.1;
+                water.windForce = -5;
+                water.waveHeight = 0.01;
                 water.windDirection = new BABYLON.Vector2(1, 1);
-                water.waterColor = new BABYLON.Color3(0.1, 0.1, 0.6);
+                water.waterColor = new BABYLON.Color3(0.2, 0.1, 0.6);
                 water.colorBlendFactor = 0.3;
                 water.bumpHeight = 0.1;
-                water.waveLength = 0.1;
+                water.waveLength = 0.2;
 
-                water.addToRenderList(ground);
+                //to fill the bottom of the bottle I created a second bottle and applied the water material to the bottom half
+                var capsule2 = new BABYLON.MeshBuilder.CreateCapsule("capsule",
+                    { radius: 7.55, capSubdivisions: 12, subdivisions: 2, tessellation: 36, height: 35.6 });
+                capsule2.rotation.x += 0;
+                capsule2.rotation.y += -.58;
+                capsule2.rotation.z += 1.58;
+                // capsule2.position.z += 0.1;
 
-                waterMesh.material = water;
+                capsule2.position.y += 2;
+                capsule2.backFaceCulling = false;
+
+                var multimat = new BABYLON.MultiMaterial("multi", scene);
+                multimat.subMaterials.push(water);
+
+                capsule2.material = multimat;
+                capsule2.subMeshes = [];
+                var verticesCount = capsule2.getTotalVertices();
+
+                new BABYLON.SubMesh(0, 0, verticesCount, 0, 2800, capsule2);
+
+                //rounded platform top view of water
+                var ratioAr = 2.37;
+                var scaleAr = 15;
+
+                var width = scaleAr;
+                var height = scaleAr * ratioAr;
+                var depth = 0.2;
+
+                var radius = width / 2; // corner radius;
+
+                var deltaAngle = Math.PI / 16;
+
+                //Polygon shape in XoZ plane held in array
+                var shape = [];
+
+                //bottom edge
+                shape.push(new BABYLON.Vector3(-width / 2 + radius, 0, -height / 2));
+                shape.push(new BABYLON.Vector3(width / 2 - radius, 0, -height / 2));
+                //bottom right corner
+                for (angle = -Math.PI / 2 + deltaAngle; angle < 0; angle += deltaAngle) {
+                    shape.push(new BABYLON.Vector3(width / 2 - radius + radius * Math.cos(angle), 0, -height / 2 + radius + radius * Math.sin(angle)));
+                }
+                //right edge;
+                shape.push(new BABYLON.Vector3(width / 2, 0, -height / 2 + radius));
+                shape.push(new BABYLON.Vector3(width / 2, 0, height / 2 - radius));
+                //top right corner
+                for (angle = deltaAngle; angle < Math.PI; angle += deltaAngle) {
+                    shape.push(new BABYLON.Vector3(width / 2 - radius + radius * Math.cos(angle), 0, height / 2 - radius + radius * Math.sin(angle)));
+                }
+                //top edge
+                shape.push(new BABYLON.Vector3(width / 2 - radius, 0, height / 2));
+                shape.push(new BABYLON.Vector3(-width / 2 + radius, 0, height / 2));
+                //top left corner
+                for (angle = Math.PI / 2 + deltaAngle; angle < Math.PI; angle += deltaAngle) {
+                    shape.push(new BABYLON.Vector3(-width / 2 + radius + radius * Math.cos(angle), 0, height / 2 - radius + radius * Math.sin(angle)));
+                }
+                //left edge;
+                shape.push(new BABYLON.Vector3(-width / 2, 0, height / 2 - radius));
+                shape.push(new BABYLON.Vector3(-width / 2, 0, -height / 2 + radius));
+                //bottom left corner
+                for (angle = Math.PI + deltaAngle; angle < 3 * Math.PI / 2; angle += deltaAngle) {
+                    shape.push(new BABYLON.Vector3(-width / 2 + radius + radius * Math.cos(angle), 0, -height / 2 + radius + radius * Math.sin(angle)));
+                }
+
+                faceUV = [];
+                faceUV[0] = new BABYLON.Vector4(0, 0, 1, 1);
+                faceUV[1] = new BABYLON.Vector4(460 / 469, 0, 1, 1);
+                faceUV[2] = new BABYLON.Vector4(445 / 469, 0, 1, 1);
+                var polygon = BABYLON.MeshBuilder.ExtrudePolygon("polygon", { shape: shape, depth: depth, faceUV: faceUV, sideOrientation: BABYLON.Mesh.DOUBLESIDE }, scene);
+
+                polygon.rotation.y += 1;
+                polygon.position.y += +2;
+
+                // water.addToRenderList(capsule);
+                polygon.material = water;
+
+                //***NOTE***
+                //as the water is made up of vertices of a complete capsule it cannot be merged with the top layer
+
+
+            }
+            function addBase() {
+                // var cylinder = BABYLON.MeshBuilder.CreateCylinder("cylinder", { arc: 0.5, diameter: 14, enclose: true, height: 20 });
+                // cylinder.rotation.x += -1.58;
+                // cylinder.rotation.y += 1;
+                // cylinder.position.y += -2;
+
+                // water.addToRenderList(cylinder);
+
+                const cylinder = BABYLON.MeshBuilder.CreateCylinder("cylinder", { arc: 0.5, diameter: 16, enclose: true, height: 5 });
+                cylinder.rotation.x += -1.58;
+                cylinder.rotation.y += 1;
+                cylinder.position.y += -2;
+                const cylinder2 = BABYLON.MeshBuilder.CreateCylinder("cylinder", { arc: 0.5, diameter: 16, enclose: true, height: 5 });
+                cylinder2.rotation.x += -1.58;
+                cylinder2.rotation.y += 1;
+                cylinder2.position.y += -2;
+                cylinder2.position.x += 10;
+
             }
             function skybox() {
                 var skybox = BABYLON.MeshBuilder.CreateBox("skyBox", { size: 1000.0 }, scene);
@@ -113,14 +202,29 @@
                 skybox.material = skyboxMaterial;
 
             }
+            function pirateShip() {
+                BABYLON.SceneLoader.Load("","assets/PirateShipBLANK.babylon",engine, function (scene) {
+                   scene.clearColor = new BABYLON.Color3(1,1,1);
+                   scene.ambientColor = new BABYLON.Color3.White();
+
+                    engine.runRenderLoop(function() {
+                       scene.render();
+                   });
+                   window.addEventListener("resize", function () {
+                       engine.resize();
+                   })
+                });
+            }
 
             setupScene();
             setupCamera();
             setupLights();
             addBottle();
             addWater();
+            //addBase();
             // skybox();
-            
+            // pirateShip();
+
 
             return scene;
         };
