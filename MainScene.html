@@ -334,9 +334,6 @@
 
             }
             function pirateShip() {
-                var volume = 5;
-                var bell = new BABYLON.Sound("bell", "assets/Bell.wav", scene);
-
                 BABYLON.SceneLoader.ImportMesh(
                     "",
                     "assets/",
@@ -346,7 +343,7 @@
                         var ship = newMeshes[0];
 
                         ship.position.y = +0.5;
-                        ship.rotation.y = -0.5;
+                        ship.rotation.y = -0.2;
                         ship.backFaceCulling = false;
 
                         scene.onKeyboardObservable.add((kbInfo) => {
@@ -356,8 +353,8 @@
                                         case "a":
                                         case "A":
                                             //bell
-                                            bell.play; //doesn't work here for some reason
-                                            //movement animation
+                                            addSound();
+                                            //particles
                                             const frameRate = 10;
                                             const xSlide = new BABYLON.Animation("xSlide", "position.x", frameRate, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
                                             const keyFrames = [];
@@ -374,8 +371,11 @@
                                                 value: 2
                                             });
                                             xSlide.setKeys(keyFrames);
+
                                             ship.animations.push(xSlide);
                                             scene.beginAnimation(ship, 0, 2 * frameRate); break
+
+                                            
                                     }
                                     break;
                             }
@@ -419,6 +419,14 @@
                 }
 
 
+            }
+            function addSound() {
+                var bell = new BABYLON.Sound("bell", "assets/bell.wav", scene, soundReady,
+                    { loop: false });
+
+                function soundReady() {
+                    bell.play();
+                }
             }
 
             setupScene();
