@@ -409,12 +409,6 @@
             }
             function addSprites() {
                 const spriteManagerTrees = new BABYLON.SpriteManager("treesManager", "assets/palm.png", 2000, { width: 512, height: 1024 });
-                // const tree = new BABYLON.Sprite("tree", spriteManagerTrees);
-                // tree.width = 50;
-                // tree.height = 100;
-                // tree.position.x = 150
-                // tree.position.z = 30
-                // tree.position.y = 22
                 for (let i = 0; i < 6; i++) {
                     const tree = new BABYLON.Sprite("tree", spriteManagerTrees);
                     tree.width = 50;
