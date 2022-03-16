@@ -97,10 +97,9 @@
                 cork.rotation.x += -1.56;
 
                 cork.material = corkTex;
-
             }
             function addWater() {
-                //SKYBOX FUNCTION/ - NEEDED TO INCLUDE HERE FOR REFLECTION
+                //INCLUDED SKYBOX FOR REFLECTION
                 var skybox = BABYLON.MeshBuilder.CreateBox("skyBox", { size: 5000.0 }, scene);
                 var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", scene);
                 skyboxMaterial.backFaceCulling = false;
@@ -211,14 +210,12 @@
                 wcylinder.rotation.y += 1;
                 wcylinder.material = water;
 
-                 water.addToRenderList(skybox);
-                
+                water.addToRenderList(skybox);
+
             }
             function addBase() {
                 var black = new BABYLON.StandardMaterial(scene);
                 black.diffuseColor = new BABYLON.Color3(0, 0, 0);
-
-
 
                 const torus = BABYLON.MeshBuilder.CreateTorus("torus", { tessellation: 60, thickness: 1, diameter: 21 });
                 torus.rotation.x = +1.56;
@@ -337,6 +334,9 @@
 
             }
             function pirateShip() {
+                var volume = 5;
+                var bell = new BABYLON.Sound("bell", "assets/Bell.wav", scene);
+
                 BABYLON.SceneLoader.ImportMesh(
                     "",
                     "assets/",
@@ -347,8 +347,41 @@
 
                         ship.position.y = +0.5;
                         ship.rotation.y = -0.5;
+                        ship.backFaceCulling = false;
 
+                        scene.onKeyboardObservable.add((kbInfo) => {
+                            switch (kbInfo.type) {
+                                case BABYLON.KeyboardEventTypes.KEYDOWN:
+                                    switch (kbInfo.event.key) {
+                                        case "a":
+                                        case "A":
+                                            //bell
+                                            bell.play; //doesn't work here for some reason
+                                            //movement animation
+                                            const frameRate = 10;
+                                            const xSlide = new BABYLON.Animation("xSlide", "position.x", frameRate, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+                                            const keyFrames = [];
+                                            keyFrames.push({
+                                                frame: 0,
+                                                value: 4
+                                            });
+                                            keyFrames.push({
+                                                frame: frameRate,
+                                                value: -4
+                                            });
+                                            keyFrames.push({
+                                                frame: 2 * frameRate,
+                                                value: 2
+                                            });
+                                            xSlide.setKeys(keyFrames);
+                                            ship.animations.push(xSlide);
+                                            scene.beginAnimation(ship, 0, 2 * frameRate); break
+                                    }
+                                    break;
+                            }
+                        });
                     });
+
 
             }
             function addHeightMap() {
@@ -358,24 +391,41 @@
 
                 const ground = BABYLON.MeshBuilder.CreateGroundFromHeightMap("",
                     "assets/heightMap.png",
-                    { width: 500, height: 500, subdivisions: 500, maxHeight: 25 });
+                    { width: 300, height: 300, subdivisions: 500, maxHeight: 25 });
 
                 ground.position.y = -28;
-                ground.position.x = 25;
-                ground.position.z = -25;
+                ground.position.x = 15;
+                ground.position.z = -18;
 
-                const box = BABYLON.MeshBuilder.CreateBox("box", { height: 500, width: 500, depth: 50 });
-                box.position.y = -54;
-                box.position.x = 25;
-                box.position.z = -25;
+                const box = BABYLON.MeshBuilder.CreateBox("box", { height: 300, width: 300, depth: 50 });
+                box.position.y = -53;
+                box.position.x = 15;
+                box.position.z = -18;
                 box.rotation.x = 1.57;
-
 
                 ground.material = sand;
                 box.material = sand;
 
             }
+            function addSprites() {
+                const spriteManagerTrees = new BABYLON.SpriteManager("treesManager", "assets/palm.png", 2000, { width: 512, height: 1024 });
+                // const tree = new BABYLON.Sprite("tree", spriteManagerTrees);
+                // tree.width = 50;
+                // tree.height = 100;
+                // tree.position.x = 150
+                // tree.position.z = 30
+                // tree.position.y = 22
+                for (let i = 0; i < 6; i++) {
+                    const tree = new BABYLON.Sprite("tree", spriteManagerTrees);
+                    tree.width = 50;
+                    tree.height = 100;
+                    tree.position.y = 22;
+                    tree.position.x = BABYLON.Scalar.RandomRange(-140, 140);
+                    tree.position.z = BABYLON.Scalar.RandomRange(-140, 140);
+                }
 
+
+            }
 
             setupScene();
             setupCamera();
@@ -386,6 +436,7 @@
             // skybox();
             pirateShip();
             addHeightMap();
+            addSprites();
 
             return scene;
         };
