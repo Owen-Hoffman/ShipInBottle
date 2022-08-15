@@ -1,4 +1,4 @@
-# ShipInBottle
+# Ship In Bottle
 
 An HTML interactive scene of a ship in a bottle made in Babylon.js for CPTR 355
 
