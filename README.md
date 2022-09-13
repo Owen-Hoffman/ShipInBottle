@@ -8,6 +8,10 @@ Animation is triggered with 'a'.
 Movement is triggered with arrow keys.
 Mouse moves camera.
 
+## Assets Used
+
+- [Babylon.js Asset Libraries](https://doc.babylonjs.com/toolsAndResources/assetLibraries)
+
 ## Source Code
 
 - [GitHub](https://github.com/Owen-Hoffman/ShipInBottle)
